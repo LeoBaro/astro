@@ -1,5 +1,5 @@
 import argparse
-from lib.photometry import Photometrics
+from astro.lib.photometry import Photometrics
 
 def main(args):
     phm = Photometrics({ 'events_filename': args.input_file })

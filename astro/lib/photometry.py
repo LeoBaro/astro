@@ -27,7 +27,7 @@
 
 from astropy.coordinates import SkyCoord, Angle
 from astropy.io import fits
-from lib import utils
+from astro.lib import utils
 from regions import CircleSkyRegion
 from regions import write_ds9
 import astropy.units as u
@@ -98,14 +98,22 @@ class Photometrics():
         """Counts photons in an input area"""
         region_center = utils.get_skycoord(input_center)
         region_radius = utils.get_angle(input_radius)
+        #print(f"input_center: {input_center}")
+        #print(f"input_radius: {input_radius}")
+        #print(f"region_center: {region_center}")
+        #print(f"region_radius: {region_radius}")
 
         # filtering...
         condlist = np.full(len(self.events_data.field('ENERGY')), True)
+        #print("condlist: ",len([i for i in condlist if i]))
+
         # ... w/ energy boundaries
         if emin is not None:
             condlist &= self.events_data.field('ENERGY') >= emin
         if emax is not None:
             condlist &= self.events_data.field('ENERGY') <= emax
+        #print("condlist: ",len([i for i in condlist if i]))
+
         # FIXME: TIME needs a better implementation
         # atm it consider users that knows the time format in the input fits
         if tmin is not None:
@@ -113,10 +121,23 @@ class Photometrics():
         if tmax is not None:
             condlist &= self.events_data.field('TIME') <= tmax
 
+        #print("condlist: ",len([i for i in condlist if i]))
         events_list = np.extract(condlist, self.events_data)
+
+        #print("events_list: ",events_list)
+        #print("events_list: ",len(events_list))
+
         # events coordinates from the selected events list
         events_coords = SkyCoord(events_list.field('RA'), events_list.field('DEC'), unit='deg', frame='icrs')
         distances = region_center.separation(events_coords)
+
+        #print(f"events_coords: {events_coords[0:2]} distances: {distances[0:2]} region_radius: {region_radius}")
+        #print("distances: ",len(distances))
+        #print("region_radius: ",region_radius)
+        #print("istances < region_radius: ",np.count_nonzero(distances < region_radius))
+
+        #print("istances >= region_radius: ",np.count_nonzero(distances >= region_radius))
+
         return np.count_nonzero(distances < region_radius)
 
     @classmethod
